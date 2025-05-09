@@ -51,13 +51,5 @@ TACG
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Explicação do README:
-
-- **Título e Descrição**: O título e descrição explicam o propósito do repositório e do código.
-- **Instalação**: Passos para instalar e rodar o código, incluindo as dependências.
-- **Uso**: Como rodar o código no terminal, fornecendo um exemplo simples de como chamar a função `RandomizedMotifSearch`.
-- **Licença**: Adicionei a licença MIT como exemplo, que é comum em repositórios públicos de código aberto.
-
-Agora você pode criar ou editar o arquivo `README.md` no seu repositório e colar esse conteúdo lá. Isso ajudará outros usuários a entender como usar o código!
 
 
