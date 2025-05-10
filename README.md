@@ -1,75 +1,134 @@
-### Randomized Motif Search
-This repository provides a Python implementation of the Randomized Motif Search algorithm, a probabilistic method for finding motifs (recurring nucleotide sequences) in a collection of DNA strings.
+# Randomized Motif Search Algorithm
 
-This algorithm is commonly used in bioinformatics to identify conserved motifs, such as binding sites, across multiple DNA sequences.
+This Python implementation demonstrates the **Randomized Motif Search** algorithm for motif finding in DNA sequences. The goal is to discover motifs of a given length \(k\) that appear most frequently in a collection of DNA strings.
 
-### Overview
-The script uses a randomized approach to generate initial motifs.
+## Algorithm Overview
 
-It iteratively improves the motifs by generating a profile matrix with pseudocounts.
+The **Randomized Motif Search** works by starting with random motifs from the DNA sequences, iterating through a series of steps to improve the motifs based on their scores. The algorithm attempts to minimize the score, which is defined by the number of mismatches between the motifs and their consensus sequence.
 
-The algorithm terminates when no further improvement in motif score is found.
+The algorithm works as follows:
 
-Repeats the process multiple times (default: 10,000 iterations) to increase the chance of finding a good solution.
+1. **Initialization**: Random motifs are selected from the input DNA sequences.
+2. **Iterative Improvement**: The motifs are iteratively updated by creating a profile of the motifs and selecting the most probable motifs based on the profile.
+3. **Profile Calculation**: A profile is built using pseudocounts to avoid zero probabilities.
+4. **Motif Search**: New motifs are selected from the DNA sequences based on the probability given by the profile.
+5. **Score Calculation**: The score of the motifs is calculated based on the consensus sequence, and the best motifs are updated if the new motifs have a better score.
 
-### How It Works
-Randomly selects motifs from the input DNA strings.
+## Python Code
 
-Calculates a profile matrix with pseudocounts from current motifs.
+```python
+import random
 
-Selects the most probable k-mer in each DNA string using the profile.
+def RandomizedMotifSearch(Dna, k, t, iterations=10000):
+    BestMotifs = [random.choice(seq) for seq in Dna]
+    BestScore = float('inf')
 
-Repeats steps 2–3 until the score (distance from consensus) no longer improves.
+    for _ in range(iterations):
+        motifs = RandomMotifs(Dna, k)
+        current_score = Score(motifs)
+        while True:
+            profile = ProfileWithPseudocounts(motifs)
+            motifs = Motifs(profile, Dna)
+            new_score = Score(motifs)
+            if new_score < current_score:
+                current_score = new_score
+            else:
+                break
+        if current_score < BestScore:
+            BestMotifs = motifs
+            BestScore = current_score
 
-Keeps the best motif set found across all iterations.
+    return BestMotifs
 
-### Functions
+def RandomMotifs(Dna, k):
+    return [seq[i:i+k] for seq in Dna for i in range(len(seq) - k + 1)]
 
-RandomizedMotifSearch(Dna, k, t, iterations): Main function that returns the best motifs found.
+def ProfileWithPseudocounts(motifs):
+    profile = {'A': [1] * len(motifs[0]), 'C': [1] * len(motifs[0]), 'G': [1] * len(motifs[0]), 'T': [1] * len(motifs[0])}
+    total_motifs = len(motifs)
 
-RandomMotifs(Dna, k): Generates all k-mers from each DNA string.
+    for i in range(len(motifs[0])):
+        for motif in motifs:
+            profile[motif[i]][i] += 1
 
-ProfileWithPseudocounts(motifs): Builds a profile matrix with Laplace smoothing.
+    for nucleotide in profile:
+        for i in range(len(profile[nucleotide])):
+            profile[nucleotide][i] /= (total_motifs + 4)  # Add pseudocounts
 
-Motifs(profile, Dna): Selects the most probable k-mer based on the profile.
+    return profile
 
-Score(motifs): Calculates total mismatch score against consensus.
+def Motifs(profile, Dna):
+    k = len(profile['A'])
+    motifs = []
+    for seq in Dna:
+        most_probable = ""
+        max_prob = -1
+        for i in range(len(seq) - k + 1):
+            kmer = seq[i:i+k]
+            prob = 1
+            for j in range(k):
+                prob *= profile[kmer[j]][j]
+            if prob > max_prob:
+                max_prob = prob
+                most_probable = kmer
+        motifs.append(most_probable)
+    return motifs
 
-Consensus(motifs): Builds a consensus string from the motifs.
+def Score(motifs):
+    consensus = Consensus(motifs)
+    score = 0
+    for motif in motifs:
+        score += sum(c1 != c2 for c1, c2 in zip(consensus, motif))
+    return score
 
-Count(motifs): Constructs a count matrix of nucleotides.
+def Consensus(motifs):
+    k = len(motifs[0])
+    count_matrix = Count(motifs)
+    consensus = ""
+    for i in range(k):
+        max_count = -1
+        most_common_base = ""
+        for base, count in count_matrix.items():
+            if count[i] > max_count:
+                max_count = count[i]
+                most_common_base = base
+        consensus += most_common_base
+    return consensus
 
-### Example
+def Count(motifs):
+    count_matrix = {'A': [0] * len(motifs[0]), 'C': [0] * len(motifs[0]), 'G': [0] * len(motifs[0]), 'T': [0] * len(motifs[0])}
+    for motif in motifs:
+        for i in range(len(motif)):
+            count_matrix[motif[i]][i] += 1
+    return count_matrix
 
+# Example usage
 k = 8
 t = 5
-Dna = [
-    "CGCCCCTCTCGGGGGTGTTCAGTAAACGGCCA",
-    "GGGCGAGGTATGTGTAAGTGCCAAGGTGCCAG",
-    "TAGTACCGAGACCGAAAGAAGTATACAGGCGT",
-    "TAGATCAAGTTTCAGGTGCACGTCGGTGAACC",
-    "AATCCACCAGCTCCACGTGCAATGTTGGCCTA"
-]
-
+Dna = ["CGCCCCTCTCGGGGGTGTTCAGTAAACGGCCA", "GGGCGAGGTATGTGTAAGTGCCAAGGTGCCAG", "TAGTACCGAGACCGAAAGAAGTATACAGGCGT", "TAGATCAAGTTTCAGGTGCACGTCGGTGAACC", "AATCCACCAGCTCCACGTGCAATGTTGGCCTA"]
 BestMotifs = RandomizedMotifSearch(Dna, k, t)
-
 for motif in BestMotifs:
-    print(motif)
-    
-### Output
-Each line of output represents a motif (substring) of length k, one for each DNA string:
+    print(motif) 
+```
+### RandomizedMotifSearch
+The RandomizedMotifSearch function is the core of the algorithm. It starts with a random selection of motifs and iteratively refines them by using the profile-based approach. The function aims to minimize the score, which is calculated based on the consensus sequence of the motifs.
 
-CGGGGGTG
-GGGCGAGG
-GAAAGAAG
-GGTGCACG
-AATGTTGG
+### Helper Functions
+RandomMotifs: Generates random motifs from the DNA sequences.
+
+ProfileWithPseudocounts: Builds a profile matrix with pseudocounts to avoid zero probabilities during motif selection.
+Motifs: Finds the most probable motifs from the DNA sequences based on the profile matrix.
+Score: Calculates the score of the motifs, which is the number of mismatches with the consensus sequence.
+Consensus: Calculates the consensus sequence from a set of motifs.
+Count: Builds a count matrix for the nucleotides in the motifs.
 
 ### Requirements
-Python 3.x
+Python 3.6 or higher
+No external libraries are required.
 
-Uses only built-in Python libraries (no external dependencies)
+### Applications
+Genome assembly and sequence reconstruction
+Bioinformatics tasks involving paired k-mers
+Eulerian path applications in graph theory
 
-### License
-This project is licensed under the MIT License.
 
