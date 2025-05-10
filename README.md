@@ -1,55 +1,73 @@
-# Randomized Motif Search Algorithm
+Randomized Motif Search
+This repository provides a Python implementation of the Randomized Motif Search algorithm, a probabilistic method for finding motifs (recurring nucleotide sequences) in a collection of DNA strings.
 
-This is a Python implementation of the **Randomized Motif Search** algorithm, which is used for discovering motifs in DNA sequences. The algorithm attempts to find a set of DNA subsequences that are statistically significant and can be used to identify conserved patterns across multiple DNA sequences.
+This algorithm is commonly used in bioinformatics to identify conserved motifs, such as binding sites, across multiple DNA sequences.
 
-## Installation
+Overview
+The script uses a randomized approach to generate initial motifs.
 
-To run this algorithm, you need to have **Python 3.x** installed on your system. It is recommended to use a virtual environment for managing dependencies.
+It iteratively improves the motifs by generating a profile matrix with pseudocounts.
 
-### Dependencies
-You can install the necessary dependencies by running:
+The algorithm terminates when no further improvement in motif score is found.
 
-```bash
-pip install -r requirements.txt
-Usage
-Clone the repository to your local machine:
-git clone https://github.com/IISkylineIII/randomized-motif-search.git
+Repeats the process multiple times (default: 10,000 iterations) to increase the chance of finding a good solution.
 
-Navigate to the project directory:
-cd randomized-motif-search
+How It Works
+Randomly selects motifs from the input DNA strings.
 
-Open the Python script randomized_motif_search.py and provide your input data. The function RandomizedMotifSearch accepts three arguments:
+Calculates a profile matrix with pseudocounts from current motifs.
 
-Dna: A list of DNA sequences (strings).
+Selects the most probable k-mer in each DNA string using the profile.
 
-k: The length of the motifs to be searched.
+Repeats steps 2–3 until the score (distance from consensus) no longer improves.
 
-t: The number of DNA sequences in the dataset.
+Keeps the best motif set found across all iterations.
 
-Example:
-# Example DNA sequences
-Dna = ["CGCCCCTCTCGGGGGTGTTCAGTAAACGGCCA", 
-       "GGGCGAGGTATGTGTAAGTGCCAAGGTGCCAG", 
-       "TAGTACCGAGACCGAAAGAAGTATACAGGCGT", 
-       "TAGATCAAGTTTCAGGTGCACGTCGGTGAACC", 
-       "AATCCACCAGCTCCACGTGCAATGTTGGCCTA"]
+Functions
+RandomizedMotifSearch(Dna, k, t, iterations): Main function that returns the best motifs found.
 
-# Call the algorithm with k = 8 and t = 5
-BestMotifs = RandomizedMotifSearch(Dna, 8, 5)
+RandomMotifs(Dna, k): Generates all k-mers from each DNA string.
 
-# Print the resulting motifs
+ProfileWithPseudocounts(motifs): Builds a profile matrix with Laplace smoothing.
+
+Motifs(profile, Dna): Selects the most probable k-mer based on the profile.
+
+Score(motifs): Calculates total mismatch score against consensus.
+
+Consensus(motifs): Builds a consensus string from the motifs.
+
+Count(motifs): Constructs a count matrix of nucleotides.
+
+Example
+
+k = 8
+t = 5
+Dna = [
+    "CGCCCCTCTCGGGGGTGTTCAGTAAACGGCCA",
+    "GGGCGAGGTATGTGTAAGTGCCAAGGTGCCAG",
+    "TAGTACCGAGACCGAAAGAAGTATACAGGCGT",
+    "TAGATCAAGTTTCAGGTGCACGTCGGTGAACC",
+    "AATCCACCAGCTCCACGTGCAATGTTGGCCTA"
+]
+
+BestMotifs = RandomizedMotifSearch(Dna, k, t)
+
 for motif in BestMotifs:
     print(motif)
-Run the script:
-python randomized_motif_search.py
+Output
+Each line of output represents a motif (substring) of length k, one for each DNA string:
 
-CGCC
-GGGC
-TACG
-TACG
-...
+CGGGGGTG
+GGGCGAGG
+GAAAGAAG
+GGTGCACG
+AATGTTGG
+
+Requirements
+Python 3.x
+
+Uses only built-in Python libraries (no external dependencies)
+
 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-
+This project is licensed under the MIT License.
 
