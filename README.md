@@ -131,4 +131,6 @@ Genome assembly and sequence reconstruction
 Bioinformatics tasks involving paired k-mers
 Eulerian path applications in graph theory
 
+### License
+This project is licensed under the MIT License.
 
